@@ -1,0 +1,3 @@
+[submodule "fwp-athix-kernel"]
+	path = fwp-athix-kernel
+	url = https://github.com/fwpirate/fwp-athix-kernel
