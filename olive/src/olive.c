@@ -45,7 +45,7 @@ void olive_entry(void)
 
     ft_ctx->cursor_enabled = false;
     ft_ctx->full_refresh(ft_ctx);
-    INFO("Olive (%s) starting...\n", _DEBUG ? "Debug" : "Release");
+    INFO("Olive (%s) starting...", _DEBUG ? "Debug" : "Release");
 
     hlt();
 }

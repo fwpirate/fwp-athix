@@ -34,7 +34,7 @@ extern struct flanterm_context *ft_ctx;
 #define INFO(...) LOG("INFO", __VA_ARGS__)
 #define WARN(...) LOG("WARN", __VA_ARGS__)
 #define ERROR(...) LOG("ERROR", __VA_ARGS__)
-#if DEBUG
+#if _DEBUG
 #define DEBUG(...) LOG("DEBUG", __VA_ARGS__)
 #define TRACE(...) LOG("TRACE", __VA_ARGS__)
 #else
