@@ -1,5 +1,8 @@
 # fwp-athix (Athix)
 
+> [!IMPORTANT]  
+> Athix and Olive is not made for production use nor daily use. It's a hobby project and not recommended for anything serious.
+
 Yet another Unix-like operating system™️ written for x86_64 processors in C. Athix and Olive are both written my fwpirate \<alavik@disroot.org\>.
 
 Athix is a simple to use and lightweight Unix-like operating system for x86_64 processors. It's designed to be small, simple, and efficient.
