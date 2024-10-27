@@ -15,6 +15,18 @@ extern struct flanterm_context *ft_ctx;
 #define _RELEASE 1
 #endif // RELEASE
 
+#ifndef OLIVE_VERSION_MAJOR
+#define OLIVE_VERSION_MAJOR 0
+#endif // OLIVE_VERSION_MAJOR
+
+#ifndef OLIVE_VERSION_MINOR
+#define OLIVE_VERSION_MINOR 0
+#endif // OLIVE_VERSION_MINOR
+
+#ifndef OLIVE_VERSION_PATCH
+#define OLIVE_VERSION_PATCH 0
+#endif // OLIVE_VERSION_PATCH
+
 #define LOG(level, ...)                           \
     do                                            \
     {                                             \

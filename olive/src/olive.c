@@ -3,6 +3,8 @@
 #include <flanterm/backends/fb.h>
 #include <sys/cpu.h>
 #include <printf.h>
+#include <sys/gdt.h>
+#include <sys/idt.h>
 
 __attribute__((used, section(".requests"))) static volatile LIMINE_BASE_REVISION(2);
 __attribute__((used, section(".requests"))) static volatile struct limine_framebuffer_request framebuffer_request = {.id = LIMINE_FRAMEBUFFER_REQUEST, .revision = 0};
@@ -10,6 +12,13 @@ __attribute__((used, section(".requests_start_marker"))) static volatile LIMINE_
 __attribute__((used, section(".requests_end_marker"))) static volatile LIMINE_REQUESTS_END_MARKER;
 
 struct flanterm_context *ft_ctx;
+
+static char *logo[] = {
+    "  ___  _ _                 ",
+    " / _ \\| (_)_   _____      ",
+    "| | | | | \\ \\ / / _ \\   ",
+    "| |_| | | |\\ V /  __/     ",
+    " \\___/|_|_| \\_/ \\___|   "};
 
 void olive_entry(void)
 {
@@ -45,7 +54,26 @@ void olive_entry(void)
 
     ft_ctx->cursor_enabled = false;
     ft_ctx->full_refresh(ft_ctx);
-    INFO("Olive (%s) starting...", _DEBUG ? "Debug" : "Release");
+
+    if (gdt_init() != 0)
+    {
+        FATAL("Failed to initialize GDT");
+        hcf();
+    }
+
+    if (idt_init() != 0)
+    {
+        FATAL("Failed to initialize IDT");
+        hcf();
+    }
+
+    for (size_t i = 0; i < sizeof(logo) / sizeof(logo[0]); i++)
+    {
+        printf("%s\n", logo[i]);
+    }
+    printf("\n");
+    printf("(Olive v%d.%d.%d-%s)\n", OLIVE_VERSION_MAJOR, OLIVE_VERSION_MINOR, OLIVE_VERSION_PATCH, _DEBUG ? "debug" : "release");
+    printf("\n");
 
     hlt();
 }

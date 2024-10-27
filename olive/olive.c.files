@@ -1,5 +1,8 @@
 src/olive.c
+
 src/sys/cpu.c
+src/sys/gdt.c
+src/sys/idt.c
 
 src/lib/string.c
 src/lib/printf.c
