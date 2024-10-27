@@ -2,5 +2,9 @@
     {
         "name": "freestanding",
         "url": "https://github.com/osdev0/freestnd-c-hdrs-0bsd/archive/refs/heads/trunk.zip"
+    },
+    {
+        "name": "flanterm",
+        "url": "https://github.com/mintsuki/flanterm/archive/refs/heads/trunk.zip"
     }
 ]

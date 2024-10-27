@@ -4,4 +4,6 @@
 sysolive
 external
 limine
-*.sio
+*.iso
+.vsocde
+.DS_Store

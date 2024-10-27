@@ -1,1 +1,3 @@
 olive/main.c
+external/flanterm/backends/fb.c
+external/flanterm/flanterm.c

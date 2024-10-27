@@ -1,6 +1,8 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <limine.h>
+#include <flanterm/flanterm.h>
+#include <flanterm/backends/fb.h>
 
 __attribute__((used, section(".requests"))) static volatile LIMINE_BASE_REVISION(2);
 __attribute__((used, section(".requests"))) static volatile struct limine_framebuffer_request framebuffer_request = { .id = LIMINE_FRAMEBUFFER_REQUEST, .revision = 0 };
@@ -38,8 +40,40 @@ static void hcf(void) {
 }
 
 void olive_entry(void) {
-    if (!LIMINE_BASE_REVISION_SUPPORTED || !framebuffer_request.response || framebuffer_request.response->framebuffer_count < 1) hcf();
+    if (!LIMINE_BASE_REVISION_SUPPORTED || !framebuffer_request.response || framebuffer_request.response->framebuffer_count < 1) {
+        hcf();
+    }
+
     struct limine_framebuffer *fb = framebuffer_request.response->framebuffers[0];
-    for (size_t i = 0; i < 100; i++) *((volatile uint32_t *)fb->address + i * (fb->pitch / 4) + i) = 0xffffff;
+    
+    struct flanterm_context *ft_ctx = flanterm_fb_init(
+        NULL,
+        NULL,
+        (void *)(uintptr_t)fb->address,
+        fb->width,
+        fb->height,
+        fb->pitch,
+        fb->red_mask_size,
+        fb->red_mask_shift,
+        fb->green_mask_size,
+        fb->green_mask_shift,
+        fb->blue_mask_size,
+        fb->blue_mask_shift,
+        NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+        0, 0, 1,
+        0, 0,
+        0, 0
+    );
+
+    if (!ft_ctx) { 
+        hcf();
+    };
+
+    ft_ctx->cursor_enabled = false;
+    ft_ctx->full_refresh(ft_ctx);
+    
+    const char msg[] = "Hello from Olive!\n";
+    flanterm_write(ft_ctx, msg, sizeof(msg));
+
     hcf();
 }

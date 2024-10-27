@@ -39,9 +39,15 @@ cat "$DEPS_FILE" | jq -c '.[]' | while IFS= read -r dep; do
     printf "  INFO\tDownloading %s...\n" "$name"
     download_file "$url" "$output_zip"
 
-    mkdir -p "$output_dir" >/dev/null 2>&1
+    # Create a temporary directory for extraction
+    temp_dir=$(mktemp -d)
 
-    unzip -q -j "$output_zip" -d "$output_dir" >/dev/null 2>&1
+    unzip -q "$output_zip" -d "$temp_dir" >/dev/null 2>&1
+
+    # Rename the extracted directory to the desired name
+    extracted_dir=$(find "$temp_dir" -mindepth 1 -maxdepth 1 -type d)
+    mv "$extracted_dir" "$OUT/$name"
+
     rm "$output_zip" >/dev/null 2>&1
 
     printf "  INFO\tDownloaded and extracted %s.\n" "$name"
