@@ -2,3 +2,4 @@
 -I external/freestanding/
 -I external/
 -I limine/
+-I olive/lib

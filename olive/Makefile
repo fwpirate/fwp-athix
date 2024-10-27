@@ -34,4 +34,4 @@ $(TARGET): $(OBJS)
 	@$(KLD) $(KLDFLAGS) -o $@ $(OBJS)
 
 clean:
-	@rm -rf $(OBJS) $(TARGET) external limine
+	@rm -rf $(OBJS) $(TARGET)

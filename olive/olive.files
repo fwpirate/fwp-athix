@@ -1,3 +1,6 @@
-olive/main.c
+olive/olive.c
+olive/lib/string.c
+olive/sys/cpu.c
+
 external/flanterm/backends/fb.c
 external/flanterm/flanterm.c

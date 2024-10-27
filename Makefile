@@ -6,6 +6,7 @@ all: build
 
 menuconfig:
 	@kconfig-mconf Kconfig
+	@$(MAKE) -C $(KERNEL) clean
 
 $(SYSOLIVE): build
 build: .config
@@ -22,7 +23,7 @@ clean:
 	@$(MAKE) -C $(KERNEL) clean
 
 fullclean: clean
-	@rm -f .config
+	@rm -f .config $(KERNEL)/external $(KERNEL)/limine
 
 .config:
 	@$(MAKE) menuconfig
