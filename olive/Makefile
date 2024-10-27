@@ -16,20 +16,13 @@ OBJS := $(SRCS:.c=.o)
 
 .PHONY: all clean
 
-all: deps limine info $(TARGET) final_info
+all: deps limine $(TARGET)
 
 deps:
 	@./get-deps.sh external deps.json
 
 limine:
 	@./limine.sh limine
-
-info:
-	@printf "  INFO\tBuilding $(TARGET) kernel\n"
-	@echo "----------------------------------------"
-final_info:
-	@echo "----------------------------------------"
-	@printf "  INFO\tDone building $(TARGET) kernel\n"
 
 
 %.o: %.c

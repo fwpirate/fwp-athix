@@ -36,6 +36,11 @@ int memcmp(const void *s1, const void *s2, size_t n) {
 }
 
 static void hcf(void) {
+    asm ("cli");
+    for (;;) asm ("hlt");
+}
+
+static void hlt(void) {
     for (;;) asm ("hlt");
 }
 
@@ -62,7 +67,7 @@ void olive_entry(void) {
         NULL, NULL, NULL, NULL, NULL, NULL, NULL,
         0, 0, 1,
         0, 0,
-        0, 0
+        0, 12
     );
 
     if (!ft_ctx) { 
@@ -75,5 +80,5 @@ void olive_entry(void) {
     const char msg[] = "Hello from Olive!\n";
     flanterm_write(ft_ctx, msg, sizeof(msg));
 
-    hcf();
+    hlt();
 }
