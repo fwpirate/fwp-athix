@@ -37,7 +37,7 @@ int vprintf(const char *fmt, va_list args)
 
 int vfprintf(void *stream, const char *fmt, va_list args)
 {
-    (void)stream;  // Unused parameter, todo: Add UNIX FILE stream support
+    (void)stream; // Unused parameter, todo: Add UNIX FILE stream support
     char buffer[1024];
     int length = npf_vsnprintf(buffer, sizeof(buffer), fmt, args);
 
@@ -48,7 +48,6 @@ int vfprintf(void *stream, const char *fmt, va_list args)
 
     return length;
 }
-
 
 int printf(const char *fmt, ...)
 {

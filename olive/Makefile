@@ -6,7 +6,7 @@ RELEASE := 0
 
 ifeq ($(CONFIG_BUILD_DEBUG), y)
     DEBUG := 1
-	KCFLAGS += -DDEBUG
+	KCFLAGS += -D_DEBUG
 else ifeq ($(CONFIG_BUILD_RELEASE), y)
     RELEASE := 1
 endif
