@@ -2,6 +2,7 @@
 #include <flanterm/flanterm.h>
 #include <flanterm/backends/fb.h>
 #include <sys/cpu.h>
+#include <printf.h>
 
 __attribute__((used, section(".requests"))) static volatile LIMINE_BASE_REVISION(2);
 __attribute__((used, section(".requests"))) static volatile struct limine_framebuffer_request framebuffer_request = { .id = LIMINE_FRAMEBUFFER_REQUEST, .revision = 0 };
@@ -9,16 +10,6 @@ __attribute__((used, section(".requests_start_marker"))) static volatile LIMINE_
 __attribute__((used, section(".requests_end_marker"))) static volatile LIMINE_REQUESTS_END_MARKER;
 
 struct flanterm_context *ft_ctx;
-
-void putc(char c) {
-    flanterm_write(ft_ctx, &c, 1);
-}
-
-void puts(const char *s) {
-    while (*s) {
-        putc(*s++);
-    }
-}
 
 void olive_entry(void) {
     if (!LIMINE_BASE_REVISION_SUPPORTED || !framebuffer_request.response || framebuffer_request.response->framebuffer_count < 1) {
@@ -53,13 +44,7 @@ void olive_entry(void) {
     ft_ctx->cursor_enabled = false;
     ft_ctx->full_refresh(ft_ctx);
     
-    puts("Hello from ");
-
-#ifdef DEBUG
-    puts("olive-debug\n");
-#else
-    puts("olive-release\n");
-#endif // DEBUG
+    printf("Hello from olive-%s", DEBUG ? "debug" : "release");
 
     hlt();
 }

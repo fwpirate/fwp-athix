@@ -5,5 +5,5 @@ sysolive
 external
 limine
 *.iso
-.vsocde
+.vscode
 .DS_Store

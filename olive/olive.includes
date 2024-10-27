@@ -1,5 +1,5 @@
--I olive/
+-I include/
 -I external/freestanding/
 -I external/
 -I limine/
--I olive/lib
+-I include/lib

@@ -23,7 +23,7 @@ clean:
 	@$(MAKE) -C $(KERNEL) clean
 
 fullclean: clean
-	@rm -f .config $(KERNEL)/external $(KERNEL)/limine
+	@rm -rf .config $(KERNEL)/external $(KERNEL)/limine
 
 .config:
 	@$(MAKE) menuconfig
