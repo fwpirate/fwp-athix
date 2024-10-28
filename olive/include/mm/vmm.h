@@ -26,7 +26,7 @@
 
 typedef struct pagemap
 {
-    uint64_t pml4;
+    uintptr_t pml4;
 } pagemap_t;
 
 #define PTE_BIT_PRESENT 1ul << 0
@@ -42,10 +42,10 @@ typedef struct pagemap
 
 extern pagemap_t _kernel_pm;
 
-int vmm_init(uint64_t kernel_virt, uint64_t kernel_phys);
+int vmm_init(uintptr_t kernel_virt, uintptr_t kernel_phys);
 void vmm_set_pm(pagemap_t *pm);
-void vmm_map(pagemap_t *pm, uint64_t virt, uint64_t phys, uint64_t flags);
-bool vmm_unmap(pagemap_t *pm, uint64_t virt, bool free_phys);
-uint64_t vmm_virt2phys(pagemap_t *pm, uint64_t virt);
+void vmm_map(pagemap_t *pm, uintptr_t virt, uintptr_t phys, uint64_t flags);
+bool vmm_unmap(pagemap_t *pm, uintptr_t virt, bool free_phys);
+uintptr_t vmm_virt2phys(pagemap_t *pm, uintptr_t virt);
 
 #endif // OLIVE_VMM_H

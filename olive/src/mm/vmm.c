@@ -19,14 +19,13 @@
 #include <mm/vmm.h>
 #include <stdint.h>
 #include <string.h>
-#include <mm/pmm.h>
 #include <stdio.h>
 #include <stdlock.h>
 #include <sys/cpu.h>
 #include <olive.h>
+#include <mm/pmm.h>
 
 pagemap_t _kernel_pm;
-
 extern char __text_start[];
 extern char __text_end[];
 extern char __rodata_start[];
@@ -34,13 +33,13 @@ extern char __rodata_end[];
 extern char __data_start[];
 extern char __data_end[];
 
-static uint64_t physical_address_width = 0;
-static uint64_t linear_address_width = 0;
+static uintptr_t physical_address_width = 0;
+static uintptr_t linear_address_width = 0;
 
 static spinlock_t map_lock = SPINLOCK_INIT;
 
-static uint64_t *get_below_pml(uint64_t *pml_pointer, uint64_t index, bool force);
-static uint64_t *pml4_to_pt(uint64_t *pml4, uint64_t virt, bool force);
+static uintptr_t *get_below_pml(uintptr_t *pml_pointer, uintptr_t index, bool force);
+static uintptr_t *pml4_to_pt(uintptr_t *pml4, uintptr_t virt, bool force);
 
 static inline void tlb_flush()
 {
@@ -50,7 +49,7 @@ static inline void tlb_flush()
         : : : "rax");
 }
 
-int vmm_init(uint64_t kernel_virt, uint64_t kernel_phys)
+int vmm_init(uintptr_t kernel_virt, uintptr_t kernel_phys)
 {
     if (kernel_virt == 0 || kernel_phys == 0)
     {
@@ -65,7 +64,7 @@ int vmm_init(uint64_t kernel_virt, uint64_t kernel_phys)
     linear_address_width = (eax >> 8) & 0xFF;
     DEBUG("Physical Address Width: %lu / Linear Address Width: %lu\n", physical_address_width, linear_address_width);
 
-    _kernel_pm.pml4 = (uint64_t)pmm_request_pages(1);
+    _kernel_pm.pml4 = (uintptr_t)pmm_request_pages(1);
     if (_kernel_pm.pml4 == 0)
     {
         ERROR("Failed to allocate memory for PML4\n");
@@ -77,17 +76,18 @@ int vmm_init(uint64_t kernel_virt, uint64_t kernel_phys)
     memset((uint8_t *)_kernel_pm.pml4, 0, PAGE_SIZE);
     TRACE("Zeroed PML4\n");
 
-    uint64_t text_start = ALIGN_DOWN((uint64_t)__text_start, PAGE_SIZE),
-             rodata_start = ALIGN_DOWN((uint64_t)__rodata_start, PAGE_SIZE),
-             data_start = ALIGN_DOWN((uint64_t)__data_start, PAGE_SIZE),
-             text_end = ALIGN_UP((uint64_t)__text_end, PAGE_SIZE),
-             rodata_end = ALIGN_UP((uint64_t)__rodata_end, PAGE_SIZE),
-             data_end = ALIGN_UP((uint64_t)__data_end, PAGE_SIZE);
+    uintptr_t text_start = ALIGN_DOWN((uintptr_t)__text_start, PAGE_SIZE),
+             rodata_start = ALIGN_DOWN((uintptr_t)__rodata_start, PAGE_SIZE),
+             data_start = ALIGN_DOWN((uintptr_t)__data_start, PAGE_SIZE),
+             text_end = ALIGN_UP((uintptr_t)__text_end, PAGE_SIZE),
+             rodata_end = ALIGN_UP((uintptr_t)__rodata_end, PAGE_SIZE),
+             data_end = ALIGN_UP((uintptr_t)__data_end, PAGE_SIZE);
 
-    uint64_t kernel_base = text_start;
-    uint64_t kernel_highest = (data_end > rodata_end) ? data_end : rodata_end;
+    uintptr_t kernel_base = text_start;
+    uintptr_t kernel_highest = (data_end > rodata_end) ? data_end : rodata_end;
     DEBUG("Kernel Base Address: 0x%llx\n", kernel_base);
     DEBUG("Kernel Highest Address: 0x%llx\n", kernel_highest);
+
 
     DEBUG("Mapping usable memory and framebuffer\n");
     for (size_t i = 0; i < _memmap->entry_count; i++)
@@ -105,7 +105,7 @@ int vmm_init(uint64_t kernel_virt, uint64_t kernel_phys)
         {
             for (size_t off = 0; off < ALIGN_UP(entry->base + entry->length, PAGE_SIZE); off += PAGE_SIZE)
             {
-                uint64_t base_off_aligned = ALIGN_UP(entry->base + off, PAGE_SIZE);
+                uintptr_t base_off_aligned = ALIGN_UP(entry->base + off, PAGE_SIZE);
                 vmm_map(&_kernel_pm, base_off_aligned + _hhdm_offset, base_off_aligned,
                         PTE_BIT_PRESENT | PTE_BIT_READ_WRITE | PTE_BIT_EXECUTE_DISABLE | PTE_BIT_WRITE_THROUGH_CACHING);
             }
@@ -120,22 +120,22 @@ int vmm_init(uint64_t kernel_virt, uint64_t kernel_phys)
     }
 
     DEBUG("Mapping the kernel text segment\n");
-    for (uint64_t text_addr = text_start; text_addr < text_end; text_addr += PAGE_SIZE)
+    for (uintptr_t text_addr = text_start; text_addr < text_end; text_addr += PAGE_SIZE)
     {
-        uint64_t phys = text_addr - kernel_virt + kernel_phys;
+        uintptr_t phys = text_addr - kernel_virt + kernel_phys;
         vmm_map(&_kernel_pm, text_addr, phys, PTE_BIT_PRESENT);
     }
     DEBUG("Mapping the kernel rodata segment\n");
-    for (uint64_t rodata_addr = rodata_start; rodata_addr < rodata_end; rodata_addr += PAGE_SIZE)
+    for (uintptr_t rodata_addr = rodata_start; rodata_addr < rodata_end; rodata_addr += PAGE_SIZE)
     {
-        uint64_t phys = rodata_addr - kernel_virt + kernel_phys;
+        uintptr_t phys = rodata_addr - kernel_virt + kernel_phys;
         vmm_map(&_kernel_pm, rodata_addr, phys, PTE_BIT_PRESENT | PTE_BIT_EXECUTE_DISABLE);
     }
 
     DEBUG("Mapping the kernel data segment\n");
-    for (uint64_t data_addr = data_start; data_addr < data_end; data_addr += PAGE_SIZE)
+    for (uintptr_t data_addr = data_start; data_addr < data_end; data_addr += PAGE_SIZE)
     {
-        uint64_t phys = data_addr - kernel_virt + kernel_phys;
+        uintptr_t phys = data_addr - kernel_virt + kernel_phys;
         vmm_map(&_kernel_pm, data_addr, phys, PTE_BIT_PRESENT | PTE_BIT_READ_WRITE | PTE_BIT_EXECUTE_DISABLE);
     }
 
@@ -146,11 +146,11 @@ int vmm_init(uint64_t kernel_virt, uint64_t kernel_phys)
     return 0;
 }
 
-static uint64_t *get_below_pml(uint64_t *pml_pointer, uint64_t index, bool force)
+static uintptr_t *get_below_pml(uintptr_t *pml_pointer, uintptr_t index, bool force)
 {
     if ((pml_pointer[index] & PTE_BIT_PRESENT) != 0)
     {
-        return (uint64_t *)((pml_pointer[index] & 0x000ffffffffff000) + _hhdm_offset);
+        return (uintptr_t *)((pml_pointer[index] & 0x000ffffffffff000) + _hhdm_offset);
     }
     if (!force)
     {
@@ -164,19 +164,19 @@ static uint64_t *get_below_pml(uint64_t *pml_pointer, uint64_t index, bool force
         return NULL;
     }
 
-    memset((void *)((uint64_t)below_pml + _hhdm_offset), 0, PAGE_SIZE);
+    memset((void *)((uintptr_t)below_pml + _hhdm_offset), 0, PAGE_SIZE);
 
-    pml_pointer[index] = (uint64_t)below_pml | PTE_BIT_PRESENT | PTE_BIT_READ_WRITE | PTE_BIT_ACCESS_ALL;
-    return (uint64_t *)((uint64_t)below_pml + _hhdm_offset);
+    pml_pointer[index] = (uintptr_t)below_pml | PTE_BIT_PRESENT | PTE_BIT_READ_WRITE | PTE_BIT_ACCESS_ALL;
+    return (uintptr_t *)((uintptr_t)below_pml + _hhdm_offset);
 }
 
-static uint64_t *pml4_to_pt(uint64_t *pml4, uint64_t virt, bool force)
+static uintptr_t *pml4_to_pt(uintptr_t *pml4, uintptr_t virt, bool force)
 {
     size_t pml4_index = (virt & (0x1fful << 39)) >> 39,
            pdpt_index = (virt & (0x1fful << 30)) >> 30,
            pd_index = (virt & (0x1fful << 21)) >> 21;
 
-    uint64_t *pdpt = NULL,
+    uintptr_t *pdpt = NULL,
              *pd = NULL,
              *pt = NULL;
 
@@ -199,11 +199,11 @@ static uint64_t *pml4_to_pt(uint64_t *pml4, uint64_t virt, bool force)
     return pt;
 }
 
-void vmm_map(pagemap_t *pm, uint64_t virt, uint64_t phys, uint64_t flags)
+void vmm_map(pagemap_t *pm, uintptr_t virt, uintptr_t phys, uint64_t flagsg)
 {
     spinlock_acquire(&map_lock);
     size_t pt_index = (virt & (0x1fful << 12)) >> 12;
-    uint64_t *pt = pml4_to_pt((uint64_t *)pm->pml4, virt, true);
+    uintptr_t *pt = pml4_to_pt((uintptr_t *)pm->pml4, virt, true);
     if (pt == NULL)
     {
         ERROR("Page table doesn't exist and didn't get created?");
@@ -216,11 +216,11 @@ void vmm_map(pagemap_t *pm, uint64_t virt, uint64_t phys, uint64_t flags)
     spinlock_release(&map_lock);
 }
 
-bool vmm_unmap(pagemap_t *pm, uint64_t virt, bool free_phys)
+bool vmm_unmap(pagemap_t *pm, uintptr_t virt, bool free_phys)
 {
     spinlock_acquire(&map_lock);
     size_t pt_index = (virt & (0x1fful << 12)) >> 12;
-    uint64_t *pt = pml4_to_pt((uint64_t *)pm->pml4, virt, false);
+    uintptr_t *pt = pml4_to_pt((uintptr_t *)pm->pml4, virt, false);
     if (pt == NULL)
     {
         spinlock_release(&map_lock);
@@ -240,13 +240,13 @@ bool vmm_unmap(pagemap_t *pm, uint64_t virt, bool free_phys)
     return true;
 }
 
-uint64_t virt2phys(pagemap_t *pm, uint64_t virt)
+uintptr_t virt2phys(pagemap_t *pm, uintptr_t virt)
 {
     size_t pt_index = (virt & (0x1fful << 12)) >> 12;
-    uint64_t *pt = pml4_to_pt((uint64_t *)pm->pml4, virt, false);
+    uintptr_t *pt = pml4_to_pt((uintptr_t *)pm->pml4, virt, false);
     if (!pt)
-        return (uint64_t)NULL;
-    uint64_t mask = ((1ull << physical_address_width) - 1) & ~0xFFF;
+        return (uintptr_t)NULL;
+    uintptr_t mask = ((1ull << physical_address_width) - 1) & ~0xFFF;
 
     return (pt[pt_index] & mask) | (virt & 0xFFF);
 }
@@ -255,5 +255,5 @@ void vmm_set_pm(pagemap_t *pm)
 {
     __asm__ volatile(
         "movq %0, %%cr3\n"
-        : : "r"((uint64_t *)(pm->pml4 - _hhdm_offset)) : "memory");
+        : : "r"((uintptr_t *)(pm->pml4 - _hhdm_offset)) : "memory");
 }
