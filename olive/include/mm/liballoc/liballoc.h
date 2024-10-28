@@ -1,3 +1,4 @@
+// Copyright: Durand Miller <clutter@djm.co.za>
 #ifndef OLIVE_LIBALLOC_H
 #define OLIVE_LIBALLOC_H
 

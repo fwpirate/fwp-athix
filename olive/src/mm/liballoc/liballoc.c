@@ -1,3 +1,4 @@
+// Copyright: Durand Miller <clutter@djm.co.za>
 #include <mm/liballoc/liballoc.h>
 
 #define VERSION "1.1"

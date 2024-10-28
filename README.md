@@ -73,4 +73,4 @@ make test
 
 ## License
 
-Athix and Olive are licensed under the CC0 license, meaning they are free to use, copy, modify, distribute, and sell without any restrictions. See the "LICENSE" file for more information.
+Athix and Olive are both licensed under the GPL3 license see [LICENSE](https://github.com/fwpirate/fwp-athix/blob/master/LICENSE).
