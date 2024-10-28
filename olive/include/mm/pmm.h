@@ -26,6 +26,8 @@
 
 extern uint64_t _hhdm_offset;
 extern struct limine_memmap_response *_memmap;
+extern uint64_t *pm_stack;
+extern uint64_t pm_stack_count;
 
 #define VIRT_TO_PHYS(vaddr) ((vaddr) - _hhdm_offset)
 #define PHYS_TO_VIRT(paddr) ((paddr) + _hhdm_offset)

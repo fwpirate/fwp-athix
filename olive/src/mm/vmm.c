@@ -117,14 +117,6 @@ int vmm_init(uint64_t kernel_virt, uint64_t kernel_phys)
                 vmm_map(&_kernel_pm, entry->base + off + _hhdm_offset, entry->base + off, PTE_BIT_PRESENT | PTE_BIT_READ_WRITE);
             }
         }
-        else if (entry->type == LIMINE_MEMMAP_USABLE)
-        {
-
-            for (size_t off = 0; off < ALIGN_UP(entry->base + entry->length, PAGE_SIZE); off += PAGE_SIZE)
-            {
-                vmm_map(&_kernel_pm, entry->base + off + _hhdm_offset, entry->base + off, PTE_BIT_PRESENT | PTE_BIT_READ_WRITE);
-            }
-        }
     }
 
     DEBUG("Mapping the kernel text segment\n");
