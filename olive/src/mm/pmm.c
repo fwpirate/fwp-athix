@@ -28,6 +28,7 @@ uint64_t pm_used_pages = 0;
 uint64_t pm_total_pages = 0;
 
 uint64_t _hhdm_offset;
+struct limine_memmap_response *_memmap;
 
 int pmm_init(void *memmap, uint64_t hhdm_offset)
 {
@@ -46,7 +47,7 @@ int pmm_init(void *memmap, uint64_t hhdm_offset)
 
     DEBUG("HHDM Offset: 0x%llx\n", hhdm_offset);
 
-    struct limine_memmap_response *_memmap = (struct limine_memmap_response *)memmap;
+    _memmap = (struct limine_memmap_response *)memmap;
     _hhdm_offset = hhdm_offset;
 
     uint64_t pm_stack_size = 0;

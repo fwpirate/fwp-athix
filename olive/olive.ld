@@ -30,9 +30,9 @@ SECTIONS
     . = ALIGN(CONSTANT(MAXPAGESIZE));
 
     .rodata : {
-        __ro_data_start = .;
+        __rodata_start = .;
         *(.rodata .rodata.*)
-        __ro_data_end = .;
+        __rodata_end = .;
     } :rodata
 
     . = ALIGN(CONSTANT(MAXPAGESIZE));

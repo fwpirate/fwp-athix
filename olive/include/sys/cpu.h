@@ -22,4 +22,6 @@
 void hcf(void);
 void hlt(void);
 
+int get_cpuid(unsigned int leaf, unsigned int *eax, unsigned int *ebx, unsigned int *ecx, unsigned int *edx);
+
 #endif // OLIVE_SYS_H

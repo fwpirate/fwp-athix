@@ -25,6 +25,7 @@
 #define PAGE_SIZE 4096
 
 extern uint64_t _hhdm_offset;
+extern struct limine_memmap_response *_memmap;
 
 #define VIRT_TO_PHYS(vaddr) ((vaddr) - _hhdm_offset)
 #define PHYS_TO_VIRT(paddr) ((paddr) + _hhdm_offset)

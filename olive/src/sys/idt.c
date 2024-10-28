@@ -106,16 +106,129 @@ int idt_init()
     return 0;
 }
 
+// TODO: Move
+typedef struct stack_frame
+{
+    struct stack_frame *rbp;
+    uint64_t rip;
+} stack_frame_t;
+
+void _backtrace(uint64_t caller)
+{
+    stack_frame_t *frame;
+    asm volatile("mov %%rbp, %0" : "=r"(frame));
+
+    FATAL("--- BACKTRACE START ----\n");
+
+    if (frame && frame->rbp == NULL)
+    {
+        FATAL("No stack trace available-\n");
+        return;
+    }
+
+    if (caller != 0)
+    {
+        FATAL(" - [caller] %-24s @ %.16llx\n", "<unkown>", caller);
+    }
+
+    int offset = 0;
+    for (int i = 0; frame && frame->rbp != NULL; i++)
+    {
+        FATAL(" - [%06d] %-24s @ %.16llx\n", i - offset, "<unkown>", frame->rip);
+        frame = frame->rbp;
+    }
+
+    FATAL("-----------------------\n");
+}
+
 void idt_handler(int_frame_t frame)
 {
     if (frame.vector < 32) // Check for exceptions
     {
+        FATAL("\n");
         DEBUG("Received exception %d (%s): %s\n", frame.vector, exception_info[frame.vector].mnemonic, exception_info[frame.vector].message);
 
         if (exception_info[frame.vector].fatal)
         {
-            // TODO: Do a proper panic
-            FATAL("Fatal exception: %s (%s), halting cpu.\n", exception_info[frame.vector].message, exception_info[frame.vector].mnemonic);
+            FATAL("--- INTERRUPT INFORMATION ---\n");
+            FATAL(" - %s (%s) @ 0x%.16llx on CPU %s\n", exception_info[frame.vector].mnemonic, exception_info[frame.vector].message, frame.rip, "<unknown>");
+            FATAL(" - Register Dump:\n");
+            FATAL("\tRAX: 0x%.16llx  RBX:    0x%.16llx  RCX: 0x%.16llx\n", frame.rax, frame.rbx, frame.rcx);
+            FATAL("\tRDX: 0x%.16llx  RSI:    0x%.16llx  RDI: 0x%.16llx\n", frame.rdx, frame.rsi, frame.rdi);
+            FATAL("\tRBP: 0x%.16llx  RSP:    0x%.16llx  -----------------------\n", frame.rbp, frame.rsp);
+            FATAL("\tR8:  0x%.16llx  R9:     0x%.16llx  R10: 0x%.16llx\n", frame.r8, frame.r9, frame.r10);
+            FATAL("\tR11: 0x%.16llx  R12:    0x%.16llx  R13: 0x%.16llx\n", frame.r11, frame.r12, frame.r13);
+            FATAL("\tR14: 0x%.16llx  R15:    0x%.16llx  -----------------------\n", frame.r14, frame.r15);
+            FATAL("\tRIP: 0x%.16llx  RFLAGS: 0x%.16llx  -----------------------\n", frame.rip, frame.rflags);
+            FATAL("\tCR2: 0x%.16llx  CR3:    0x%.16llx  -----------------------\n", frame.cr2, frame.cr3);
+            FATAL("\tCS:  0x%.16llx  SS:     0x%.16llx  -----------------------\n", frame.cs, frame.ss);
+            FATAL("\tERR: 0x%.16llx  VECTOR: 0x%.16llx  -----------------------\n", frame.err, frame.vector);
+
+            switch (frame.vector)
+            {
+            case 8:
+                FATAL(" - Double Fault: No additional error information.\n");
+                break;
+            case 10:
+                FATAL(" - Invalid TSS Details:\n");
+                FATAL("\tError Code: 0x%.16llx\n", frame.err);
+                FATAL("\t - %s\n", (frame.err & 1) ? "External event caused error" : "Descriptor caused error");
+                FATAL("\t - Index: 0x%.16llx\n", (frame.err >> 3) & 0x1FFF);
+                FATAL("\t - %s\n", (frame.err & (1 << 2)) ? "LDT segment" : "GDT segment");
+                break;
+            case 11:
+                FATAL(" - Segment Not Present Details:\n");
+                FATAL("\tError Code: 0x%.16llx\n", frame.err);
+                FATAL("\t - %s\n", (frame.err & 1) ? "External event caused error" : "Descriptor caused error");
+                FATAL("\t - Index: 0x%.16llx\n", (frame.err >> 3) & 0x1FFF);
+                FATAL("\t - %s\n", (frame.err & (1 << 2)) ? "LDT segment" : "GDT segment");
+                break;
+            case 12:
+                FATAL(" - Stack-Segment Fault Details:\n");
+                FATAL("\tError Code: 0x%.16llx\n", frame.err);
+                FATAL("\t - %s\n", (frame.err & 1) ? "External event caused error" : "Descriptor caused error");
+                FATAL("\t - Index: 0x%.16llx\n", (frame.err >> 3) & 0x1FFF);
+                FATAL("\t - %s", (frame.err & (1 << 2)) ? "LDT segment" : "GDT segment");
+                break;
+            case 13:
+                FATAL(" - General Protection Fault Details:\n");
+                FATAL("\tError Code: 0x%.16llx\n", frame.err);
+                FATAL("\t - %s\n", (frame.err & 1) ? "External event caused error" : "Descriptor caused error");
+                FATAL("\t - Index: 0x%.16llx\n", (frame.err >> 3) & 0x1FFF);
+                FATAL("\t - %s\n", (frame.err & (1 << 2)) ? "LDT segment" : "GDT segment");
+                break;
+            case 14:
+                FATAL(" - Page Fault Details:\n");
+                FATAL("\tError Code: 0x%.16llx\n", frame.err);
+                FATAL("\t - %s\n", (frame.err & 1) ? "Protection violation" : "Non-present page");
+                FATAL("\t - %s\n", (frame.err & 2) ? "Write access" : "Read access");
+                FATAL("\t - %s\n", (frame.err & 4) ? "User mode" : "Supervisor mode");
+                FATAL("\t - %s\n", (frame.err & 8) ? "Reserved bit set" : "No reserved bit violation");
+                FATAL("\t - %s\n", (frame.err & 16) ? "Instruction fetch" : "Data access");
+                break;
+            case 17:
+                FATAL(" - Alignment Check Details:\n");
+                FATAL("\tError Code: 0x%.16llx\n", frame.err);
+                FATAL("\t - %s\n", (frame.err & 1) ? "User mode" : "Supervisor mode");
+                break;
+            case 21:
+                FATAL(" - Control Protection Exception Details:\n");
+                FATAL("\tError Code: 0x%.16llx\n", frame.err);
+                break;
+            case 29:
+                FATAL(" - VMM Communication Exception Details:\n");
+                FATAL("\tError Code: 0x%.16llx\n", frame.err);
+                break;
+            case 30:
+                FATAL(" - Security Exception Details:\n");
+                FATAL("\tError Code: 0x%.16llx\n", frame.err);
+                break;
+            default:
+                FATAL(" - No detailed information for this exception.\n");
+                break;
+            }
+            FATAL("-------------------------------\n");
+            _backtrace(frame.rip);
             hcf();
         }
         else
