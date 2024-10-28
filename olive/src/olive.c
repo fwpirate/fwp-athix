@@ -105,8 +105,6 @@ void olive_entry(void)
     }
 
     *a = 'A';
-    outb(0x3f8, *a);
-
     DEBUG("Allocated test page at 0x%p, value: %c", a, *a);
     pmm_free_pages(a, 1);
 

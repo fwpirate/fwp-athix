@@ -12,10 +12,13 @@ typedef long ssize_t;
 #define NANOPRINTF_IMPLEMENTATION
 #include <internal/nanoprintf.h>
 
+#include <dev/serial.h>
+
 int putchar(char ch)
 {
     if (ft_ctx)
     {
+        outb(0x3f8, ch); // TODO: Make a proper COM1 handler
         flanterm_write(ft_ctx, &ch, 1);
     }
     return ch;
@@ -37,13 +40,17 @@ int vprintf(const char *fmt, va_list args)
 
 int vfprintf(void *stream, const char *fmt, va_list args)
 {
-    (void)stream; // Unused parameter, todo: Add UNIX FILE stream support
+    (void)stream;
     char buffer[1024];
     int length = npf_vsnprintf(buffer, sizeof(buffer), fmt, args);
 
+    // TODO: Use write function in stream, not yet impelemented
     if (length >= 0 && length < (int)sizeof(buffer))
     {
-        flanterm_write(ft_ctx, buffer, length);
+        for (int i = 0; i < length; i++)
+        {
+            putchar(buffer[i]);
+        }
     }
 
     return length;
