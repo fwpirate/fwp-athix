@@ -7,6 +7,7 @@
 #include <sys/idt.h>
 #include <mm/pmm.h>
 #include <dev/serial.h>
+#include <stdlib.h>
 
 __attribute__((used, section(".requests"))) static volatile LIMINE_BASE_REVISION(2);
 __attribute__((used, section(".requests"))) static volatile struct limine_framebuffer_request framebuffer_request = {.id = LIMINE_FRAMEBUFFER_REQUEST, .revision = 0};
@@ -61,13 +62,13 @@ void olive_entry(void)
 
     if (gdt_init() != 0)
     {
-        FATAL("Failed to initialize GDT");
+        FATAL("Failed to initialize GDT\n");
         hcf();
     }
 
     if (idt_init() != 0)
     {
-        FATAL("Failed to initialize IDT");
+        FATAL("Failed to initialize IDT\n");
         hcf();
     }
 
@@ -81,32 +82,32 @@ void olive_entry(void)
 
     if (memmap_request.response == NULL || memmap_request.response->entry_count == 0)
     {
-        FATAL("No memory map available");
+        FATAL("No memory map available\n");
         hcf();
     }
 
     if (hhdm_request.response == NULL || hhdm_request.response->offset == 0)
     {
-        FATAL("No HHDM offset available");
+        FATAL("No HHDM offset available\n");
         hcf();
     }
 
     if (pmm_init(memmap_request.response, hhdm_request.response->offset) != 0)
     {
-        FATAL("Failed to initialize Physical Memory Manager");
+        FATAL("Failed to initialize Physical Memory Manager\n");
         hcf();
     }
 
-    char *a = (char *)pmm_request_pages(1);
+    char *a = (char *)kmalloc(sizeof(char));
     if (a == NULL)
     {
-        FATAL("Failed to allocate memory for test page");
+        FATAL("Failed to allocate memory for test malloc, failed to use liballoc\n");
         hcf();
     }
 
     *a = 'A';
-    DEBUG("Allocated test page at 0x%p, value: %c", a, *a);
-    pmm_free_pages(a, 1);
+    INFO("Allocated 1 byte at %p (%c)\n", a, *a);
+    kfree(a);
 
     hlt();
 }

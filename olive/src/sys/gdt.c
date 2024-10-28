@@ -16,7 +16,7 @@ int gdt_init()
     gdt_pointer.limit = (uint16_t)(sizeof(gdt_entries) - 1);
     gdt_pointer.base = (uintptr_t)&gdt_entries;
 
-    DEBUG("GDT initialized with base=0x%lx, limit=%u", gdt_pointer.base, gdt_pointer.limit);
+    DEBUG("GDT initialized with base=0x%lx, limit=%u\n", gdt_pointer.base, gdt_pointer.limit);
 
     gdt_flush(gdt_pointer);
     return 0;
@@ -24,7 +24,7 @@ int gdt_init()
 
 void gdt_flush(gdt_pointer_t gdtr)
 {
-    TRACE("Flushing GDT...");
+    TRACE("Flushing GDT...\n");
 
     __asm__ volatile(
         "mov %0, %%rdi\n"
@@ -44,6 +44,6 @@ void gdt_flush(gdt_pointer_t gdtr)
         : "r"(&gdtr)
         : "memory");
 
-    TRACE("GDT flushed successfully.");
-    TRACE("Segment selectors set to 0x10 for all segments.");
+    TRACE("GDT flushed successfully.\n");
+    TRACE("Segment selectors set to 0x10 for all segments.\n");
 }

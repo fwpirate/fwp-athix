@@ -16,17 +16,17 @@ int pmm_init(void *memmap, uint64_t hhdm_offset)
     if (memmap == NULL)
     {
         UNUSED(hhdm_offset);
-        ERROR("Memory map is null, ensure that the configured bootloader provides a valid memory map.");
+        ERROR("Memory map is null, ensure that the configured bootloader provides a valid memory map.\n");
         return 1;
     }
 
     if (hhdm_offset == 0)
     {
-        ERROR("HHDM offset is zero, ensure that the configured bootloader provides a valid HHDM offset.");
+        ERROR("HHDM offset is zero, ensure that the configured bootloader provides a valid HHDM offset.\n");
         return 1;
     }
 
-    DEBUG("HHDM Offset: 0x%llx", hhdm_offset);
+    DEBUG("HHDM Offset: 0x%llx\n", hhdm_offset);
 
     struct limine_memmap_response *_memmap = (struct limine_memmap_response *)memmap;
     _hhdm_offset = hhdm_offset;
@@ -43,7 +43,7 @@ int pmm_init(void *memmap, uint64_t hhdm_offset)
     }
 
     pm_stack_size = ALIGN_UP((pm_total_pages * sizeof(uint64_t)), PAGE_SIZE);
-    DEBUG("PM Stack size: %llu bytes", pm_stack_size);
+    DEBUG("PM Stack size: %llu bytes\n", pm_stack_size);
 
     // Locate memory for the stack
     for (int64_t i = _memmap->entry_count - 1; i >= 0; i--)
@@ -54,7 +54,7 @@ int pmm_init(void *memmap, uint64_t hhdm_offset)
             pm_stack = (uint64_t *)(entry->base + entry->length - pm_stack_size + hhdm_offset);
             memset(pm_stack, 0, pm_stack_size);
             entry->length -= pm_stack_size;
-            DEBUG("PM Stack allocated at 0x%.16llx, updated entry base to 0x%.16llx, length to %llu",
+            DEBUG("PM Stack allocated at 0x%.16llx, updated entry base to 0x%.16llx, length to %llu\n",
                   (uint64_t)pm_stack, entry->base, entry->length);
             break;
         }
@@ -70,7 +70,7 @@ int pmm_init(void *memmap, uint64_t hhdm_offset)
             {
                 if (pm_stack_idx >= pm_total_pages)
                 {
-                    ERROR("PM Stack overflow while pushing pages.");
+                    ERROR("PM Stack overflow while pushing pages.\n");
                     return 1;
                 }
                 pm_stack[pm_stack_idx++] = entry->base + j;
@@ -79,7 +79,7 @@ int pmm_init(void *memmap, uint64_t hhdm_offset)
     }
 
     pm_free_pages = pm_stack_idx;
-    DEBUG("PM initialized with %llu free pages", pm_free_pages);
+    DEBUG("PM initialized with %llu free pages\n", pm_free_pages);
     return 0;
 }
 
@@ -87,16 +87,16 @@ void *pmm_request_pages(size_t pages)
 {
     if (pages == 0 || pm_stack_idx < pages)
     {
-        WARN("Unable to allocate %zu pages, out of memory.", pages);
+        WARN("Unable to allocate %zu pages, out of memory.\n", pages);
         return NULL;
     }
 
     pm_stack_idx -= pages;
-    void *ptr = (void *)(pm_stack[pm_stack_idx] + _hhdm_offset);
+    void *ptr = (void *)(pm_stack[pm_stack_idx]);
     pm_used_pages += pages;
     pm_free_pages -= pages;
 
-    TRACE("Allocated %zu pages starting at address 0x%llx", pages, (uint64_t)ptr);
+    TRACE("Allocated %zu pages starting at physical address 0x%llx\n", pages, (uint64_t)ptr);
     return ptr;
 }
 
@@ -106,13 +106,13 @@ void pmm_free_pages(void *ptr, size_t pages)
     ASSERT((uint64_t)ptr % PAGE_SIZE == 0);
     ASSERT(pages > 0);
 
-    uint64_t page_addr = (uint64_t)ptr - _hhdm_offset;
+    uint64_t page_addr = (uint64_t)ptr;
 
     for (size_t i = 0; i < pages; i++)
     {
         if (pm_stack_idx >= pm_total_pages)
         {
-            ERROR("PMM Stack overflow while freeing pages.");
+            ERROR("PMM Stack overflow while freeing pages.\n");
             return;
         }
         pm_stack[pm_stack_idx++] = page_addr + (i * PAGE_SIZE);
@@ -121,5 +121,5 @@ void pmm_free_pages(void *ptr, size_t pages)
     pm_free_pages += pages;
     pm_used_pages -= pages;
 
-    TRACE("Freed %zu pages starting from address 0x%llx", pages, (uint64_t)ptr);
+    TRACE("Freed %zu pages starting from physical address 0x%llx\n", pages, (uint64_t)ptr);
 }

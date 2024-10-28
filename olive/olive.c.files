@@ -13,3 +13,6 @@ src/dev/serial.c
 
 external/flanterm/backends/fb.c
 external/flanterm/flanterm.c
+
+src/mm/liballoc/liballoc.c
+src/mm/liballoc/liballoc_wrappers.c

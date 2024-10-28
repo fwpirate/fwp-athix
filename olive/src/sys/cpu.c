@@ -3,14 +3,14 @@
 
 void hcf(void)
 {
-    TRACE("Halting CPU and disabling interrupts...");
+    TRACE("Halting CPU and disabling interrupts...\n");
     __asm__ volatile("cli");
     hlt();
 }
 
 void hlt(void)
 {
-    TRACE("Halting CPU...");
+    TRACE("Halting CPU...\n");
     for (;;)
     {
         __asm__ volatile(

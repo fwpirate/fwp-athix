@@ -58,7 +58,7 @@ void idt_set_gate(idt_entry_t idt[], int num, uint64_t base, uint16_t sel, uint8
     idt[num].ist = 0;
     idt[num].flags = flags;
     idt[num].zero = 0;
-    TRACE("Set IDT entry %d: base=0x%lx, selector=0x%x, flags=0x%x", num, base, sel, flags);
+    TRACE("Set IDT entry %d: base=0x%lx, selector=0x%x, flags=0x%x\n", num, base, sel, flags);
 }
 
 int idt_init()
@@ -74,17 +74,17 @@ int idt_init()
     for (int i = 0; i < 32; ++i)
     {
         idt_set_gate(idt_entries, i, isr_table[i], 0x08, 0x8E);
-        TRACE("Initialized IDT entry for exception %d (%s): %s", i, exception_info[i].mnemonic, exception_info[i].message);
+        TRACE("Initialized IDT entry for exception %d (%s): %s\n", i, exception_info[i].mnemonic, exception_info[i].message);
     }
 
     for (int i = IRQ_BASE; i < IRQ_BASE + IRQ_COUNT; ++i)
     {
         idt_set_gate(idt_entries, i, isr_table[i], 0x08, 0x8E);
-        TRACE("Initialized IDT entry for IRQ %d", i - IRQ_BASE);
+        TRACE("Initialized IDT entry for IRQ %d\n", i - IRQ_BASE);
     }
 
     idt_load((uint64_t)&idt_pointer);
-    DEBUG("IDT loaded with base=0x%lx, limit=%u", idt_pointer.base, idt_pointer.limit);
+    DEBUG("IDT loaded with base=0x%lx, limit=%u\n", idt_pointer.base, idt_pointer.limit);
     return 0;
 }
 
@@ -92,12 +92,12 @@ void idt_handler(int_frame_t frame)
 {
     if (frame.vector < 32) // Check for exceptions
     {
-        DEBUG("Received exception %d (%s): %s", frame.vector, exception_info[frame.vector].mnemonic, exception_info[frame.vector].message);
+        DEBUG("Received exception %d (%s): %s\n", frame.vector, exception_info[frame.vector].mnemonic, exception_info[frame.vector].message);
 
         if (exception_info[frame.vector].fatal)
         {
             // TODO: Do a proper panic
-            FATAL("Fatal exception: %s (%s), halting cpu.", exception_info[frame.vector].message, exception_info[frame.vector].mnemonic);
+            FATAL("Fatal exception: %s (%s), halting cpu.\n", exception_info[frame.vector].message, exception_info[frame.vector].mnemonic);
             hcf();
         }
         else
@@ -105,10 +105,10 @@ void idt_handler(int_frame_t frame)
             switch (frame.vector)
             {
             case 3:
-                ALERT("BREAKPOINT @ 0x%p", frame.rip);
+                ALERT("BREAKPOINT @ 0x%p\n", frame.rip);
                 break;
             default:
-                WARN("Non-fatal exception: %s", exception_info[frame.vector].message);
+                WARN("Non-fatal exception: %s\n", exception_info[frame.vector].message);
                 break;
             }
         }
@@ -116,25 +116,25 @@ void idt_handler(int_frame_t frame)
     else if (frame.vector >= IRQ_BASE && frame.vector < IRQ_BASE + IRQ_COUNT) // Check for IRQs
     {
         int irq = frame.vector - IRQ_BASE;
-        DEBUG("Received IRQ %d", irq);
+        DEBUG("Received IRQ %d\n", irq);
         if (irq_handlers[irq])
         {
-            DEBUG("Invoking handler for IRQ %d", irq);
+            DEBUG("Invoking handler for IRQ %d\n", irq);
             irq_handlers[irq](&frame);
-            DEBUG("Executed IRQ handler for IRQ %d", irq);
+            DEBUG("Executed IRQ handler for IRQ %d\n", irq);
         }
         else
         {
-            WARN("No handler registered for IRQ %d, interrupt ignored", irq);
+            WARN("No handler registered for IRQ %d, interrupt ignored\n", irq);
         }
     }
     else if (frame.vector == 0x80) // System call
     {
-        WARN("Received system call interrupt, processing skipped");
+        WARN("Received system call interrupt, processing skipped\n");
     }
     else // Unknown interrupt
     {
-        WARN("Received unknown interrupt vector: %d, no action taken", frame.vector);
+        WARN("Received unknown interrupt vector: %d, no action taken\n", frame.vector);
     }
 }
 
@@ -142,20 +142,20 @@ void idt_irq_register(int irq, idt_handler_t handler)
 {
     if (irq < 0 || irq >= IRQ_COUNT)
     {
-        ERROR("Attempted to register invalid IRQ: %d", irq);
+        ERROR("Attempted to register invalid IRQ: %d\n", irq);
         return;
     }
     irq_handlers[irq] = handler;
-    DEBUG("Registered IRQ handler for IRQ %d", irq);
+    DEBUG("Registered IRQ handler for IRQ %d\n", irq);
 }
 
 void idt_irq_deregister(int irq)
 {
     if (irq < 0 || irq >= IRQ_COUNT)
     {
-        ERROR("Attempted to deregister invalid IRQ: %d", irq);
+        ERROR("Attempted to deregister invalid IRQ: %d\n", irq);
         return;
     }
     irq_handlers[irq] = 0;
-    DEBUG("Deregistered IRQ handler for IRQ %d", irq);
+    DEBUG("Deregistered IRQ handler for IRQ %d\n", irq);
 }

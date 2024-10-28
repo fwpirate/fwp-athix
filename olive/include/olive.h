@@ -51,7 +51,6 @@ extern struct flanterm_context *ft_ctx;
         }                                         \
                                                   \
         printf(__VA_ARGS__);                      \
-        printf("\n");                             \
     } while (0)
 
 #define INFO(...) LOG("INFO", __VA_ARGS__)

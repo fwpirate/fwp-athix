@@ -1,4 +1,5 @@
 #include <printf.h>
+#include <stdlock.h>
 
 #define NANOPRINTF_USE_FIELD_WIDTH_FORMAT_SPECIFIERS 1
 #define NANOPRINTF_USE_PRECISION_FORMAT_SPECIFIERS 1
@@ -14,37 +15,49 @@ typedef long ssize_t;
 
 #include <dev/serial.h>
 
+static spinlock_t printf_lock = SPINLOCK_INIT;
+
 int putchar(char ch)
 {
+    spinlock_acquire(&printf_lock);
+
     if (ft_ctx)
     {
         outb(0x3f8, ch); // TODO: Make a proper COM1 handler
         flanterm_write(ft_ctx, &ch, 1);
     }
+
+    spinlock_release(&printf_lock);
     return ch;
 }
 
 int puts(const char *str)
 {
+    spinlock_acquire(&printf_lock);
+
     int length = 0;
     for (length = 0; *str; length++, putchar(*str++))
         ;
     putchar('\n');
+
+    spinlock_release(&printf_lock);
     return length + 1;
 }
 
 int vprintf(const char *fmt, va_list args)
 {
-    return vfprintf(NULL, fmt, args);
+    int length = vfprintf(NULL, fmt, args);
+    return length;
 }
 
 int vfprintf(void *stream, const char *fmt, va_list args)
 {
     (void)stream;
     char buffer[1024];
+
     int length = npf_vsnprintf(buffer, sizeof(buffer), fmt, args);
 
-    // TODO: Use write function in stream, not yet impelemented
+    // TODO: Use write function in stream, not yet implemented
     if (length >= 0 && length < (int)sizeof(buffer))
     {
         for (int i = 0; i < length; i++)
