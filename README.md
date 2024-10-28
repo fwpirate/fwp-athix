@@ -11,10 +11,14 @@ Athix is a simple to use and lightweight Unix-like operating system for x86_64 p
 
 Athix in the core runs on the Olive kernel, see "olive" directory. Olive follows a UNIX-like design, with a focus on simplicity, efficiency, and minimalism. Olive is designed to be easy to understand and modify, making it suitable for learning and experimentation.
 
-## Features
+## Features / Things Implemented
 *Note: Athix is still in early development and some features may not be implemented yet.*
 
-...
+- Interrupts (GDT, IDT but not IRQ nor syscalls).
+- Physical memory management (PMM).
+- Heap (liballoc).
+- Partial serial I/O.
+- POSIX printf functions (nanoprintf wrappers).
 
 ## Building
 
