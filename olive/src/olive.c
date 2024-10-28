@@ -26,6 +26,7 @@
 #include <mm/pmm.h>
 #include <dev/serial.h>
 #include <stdlib.h>
+#include <mm/vmm.h>
 
 __attribute__((used, section(".requests"))) static volatile LIMINE_BASE_REVISION(2);
 __attribute__((used, section(".requests"))) static volatile struct limine_framebuffer_request framebuffer_request = {.id = LIMINE_FRAMEBUFFER_REQUEST, .revision = 0};
@@ -113,6 +114,12 @@ void olive_entry(void)
     if (pmm_init(memmap_request.response, hhdm_request.response->offset) != 0)
     {
         FATAL("Failed to initialize Physical Memory Manager\n");
+        hcf();
+    }
+
+    if (vmm_init() != 0)
+    {
+        FATAL("Failed to initialize Virtual Memory Manager\n");
         hcf();
     }
 
