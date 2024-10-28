@@ -24,3 +24,47 @@ config BUILD_TRACE
 endchoice
 
 endmenu
+
+
+menu "Athix Emulation Config"
+
+config QEMU_MEMORY_SIZE
+    int "Memory Size (MB)"
+    default 512
+    help
+        Sets the amount of memory (in MB) allocated for the QEMU virtual machine.
+        Default is 512 MB.
+
+config QEMU_CPU_CORES
+    int "CPU Cores"
+    default 2
+    help
+        Sets the number of CPU cores for the QEMU virtual machine.
+        Default is 2 cores.
+
+config QEMU_ENABLE_KVM
+    bool "Enable KVM (Kernel Virtual Machine)"
+    default n
+    help
+        Enable KVM for hardware-accelerated virtualization if running on Linux.
+
+config QEMU_SERIAL_OUTPUT
+    bool "Enable Serial Console Output"
+    default y
+    help
+        Enable serial console output for debugging and logging kernel messages in QEMU.
+
+config QEMU_GRAPHICS_OUTPUT
+    bool "Enable Graphics Output"
+    default y
+    help
+        Enable graphical output in QEMU. If disabled, QEMU will run with console-only output.
+
+config QEMU_EXTRA_ARGS
+    string "Additional QEMU Arguments"
+    default ""
+    help
+        Additional arguments to pass to QEMU. Useful for advanced customization,
+        such as specific device emulation or tuning VM behavior.
+
+endmenu

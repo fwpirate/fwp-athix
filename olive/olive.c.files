@@ -9,5 +9,7 @@ src/lib/printf.c
 
 src/mm/pmm.c
 
+src/dev/serial.c
+
 external/flanterm/backends/fb.c
 external/flanterm/flanterm.c

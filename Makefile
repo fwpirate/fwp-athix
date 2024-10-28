@@ -4,6 +4,8 @@ SYSOLIVE := $(KERNEL)/sys$(KERNEL)
 .PHONY: all build clean menuconfig
 all: build
 
+include .config
+
 menuconfig:
 	@kconfig-mconf Kconfig
 	@$(MAKE) -C $(KERNEL) clean
@@ -17,7 +19,19 @@ iso: $(SYSOLIVE)
 	@./iso-gen.sh $(SYSOLIVE)
 
 test: iso
-	@qemu-system-x86_64 -name "Athix" -cdrom "Athix.iso" -boot d -machine q35 -rtc base=localtime,clock=host -m 2G -serial stdio
+	@qemu-system-x86_64 \
+		-name "Athix" \
+		-cdrom "Athix.iso" \
+		-boot d \
+		-machine q35 \
+		-rtc base=localtime,clock=host \
+		-m $(CONFIG_QEMU_MEMORY_SIZE)M \
+		-smp $(CONFIG_QEMU_CPU_CORES) \
+		$(if $(CONFIG_QEMU_ENABLE_KVM),-enable-kvm) \
+		$(if $(CONFIG_QEMU_SERIAL_OUTPUT),-serial stdio) \
+		$(if $(CONFIG_QEMU_GRAPHICS_OUTPUT),, -display none) \
+		$(if $(CONFIG_QEMU_EXTRA_ARGS),,$(CONFIG_QEMU_EXTRA_ARGS))
+
 
 clean:
 	@$(MAKE) -C $(KERNEL) clean

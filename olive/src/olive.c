@@ -6,6 +6,7 @@
 #include <sys/gdt.h>
 #include <sys/idt.h>
 #include <mm/pmm.h>
+#include <dev/serial.h>
 
 __attribute__((used, section(".requests"))) static volatile LIMINE_BASE_REVISION(2);
 __attribute__((used, section(".requests"))) static volatile struct limine_framebuffer_request framebuffer_request = {.id = LIMINE_FRAMEBUFFER_REQUEST, .revision = 0};
@@ -104,6 +105,8 @@ void olive_entry(void)
     }
 
     *a = 'A';
+    outb(0x3f8, *a);
+
     DEBUG("Allocated test page at 0x%p, value: %c", a, *a);
     pmm_free_pages(a, 1);
 
