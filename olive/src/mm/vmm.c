@@ -199,7 +199,7 @@ static uintptr_t *pml4_to_pt(uintptr_t *pml4, uintptr_t virt, bool force)
     return pt;
 }
 
-void vmm_map(pagemap_t *pm, uintptr_t virt, uintptr_t phys, uint64_t flagsg)
+void vmm_map(pagemap_t *pm, uintptr_t virt, uintptr_t phys, uint64_t flags)
 {
     spinlock_acquire(&map_lock);
     size_t pt_index = (virt & (0x1fful << 12)) >> 12;
