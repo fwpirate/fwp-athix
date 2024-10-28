@@ -24,7 +24,7 @@ int gdt_init()
 
 void gdt_flush(gdt_pointer_t gdtr)
 {
-    DEBUG("Flushing GDT...");
+    TRACE("Flushing GDT...");
 
     __asm__ volatile(
         "mov %0, %%rdi\n"
@@ -44,6 +44,6 @@ void gdt_flush(gdt_pointer_t gdtr)
         : "r"(&gdtr)
         : "memory");
 
-    DEBUG("GDT flushed successfully.");
-    DEBUG("Segment selectors set to 0x10 for all segments.");
+    TRACE("GDT flushed successfully.");
+    TRACE("Segment selectors set to 0x10 for all segments.");
 }

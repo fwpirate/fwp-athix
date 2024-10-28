@@ -5,9 +5,12 @@
 #include <printf.h>
 #include <sys/gdt.h>
 #include <sys/idt.h>
+#include <mm/pmm.h>
 
 __attribute__((used, section(".requests"))) static volatile LIMINE_BASE_REVISION(2);
 __attribute__((used, section(".requests"))) static volatile struct limine_framebuffer_request framebuffer_request = {.id = LIMINE_FRAMEBUFFER_REQUEST, .revision = 0};
+__attribute__((used, section(".requests"))) static volatile struct limine_memmap_request memmap_request = {.id = LIMINE_MEMMAP_REQUEST, .revision = 0};
+__attribute__((used, section(".requests"))) static volatile struct limine_hhdm_request hhdm_request = {.id = LIMINE_HHDM_REQUEST, .revision = 0};
 __attribute__((used, section(".requests_start_marker"))) static volatile LIMINE_REQUESTS_START_MARKER;
 __attribute__((used, section(".requests_end_marker"))) static volatile LIMINE_REQUESTS_END_MARKER;
 
@@ -72,8 +75,37 @@ void olive_entry(void)
         printf("%s\n", logo[i]);
     }
     printf("\n");
-    printf("(Olive v%d.%d.%d-%s)\n", OLIVE_VERSION_MAJOR, OLIVE_VERSION_MINOR, OLIVE_VERSION_PATCH, _DEBUG ? "debug" : "release");
+    printf("(Olive v%d.%d.%d-%s (%s))\n", OLIVE_VERSION_MAJOR, OLIVE_VERSION_MINOR, OLIVE_VERSION_PATCH, _DEBUG ? "debug" : "release", _TRACE ? "trace" : "no trace");
     printf("\n");
+
+    if (memmap_request.response == NULL || memmap_request.response->entry_count == 0)
+    {
+        FATAL("No memory map available");
+        hcf();
+    }
+
+    if (hhdm_request.response == NULL || hhdm_request.response->offset == 0)
+    {
+        FATAL("No HHDM offset available");
+        hcf();
+    }
+
+    if (pmm_init(memmap_request.response, hhdm_request.response->offset) != 0)
+    {
+        FATAL("Failed to initialize Physical Memory Manager");
+        hcf();
+    }
+
+    char *a = (char *)pmm_request_pages(1);
+    if (a == NULL)
+    {
+        FATAL("Failed to allocate memory for test page");
+        hcf();
+    }
+
+    *a = 'A';
+    DEBUG("Allocated test page at 0x%p, value: %c", a, *a);
+    pmm_free_pages(a, 1);
 
     hlt();
 }

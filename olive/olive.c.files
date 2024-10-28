@@ -7,5 +7,7 @@ src/sys/idt.c
 src/lib/string.c
 src/lib/printf.c
 
+src/mm/pmm.c
+
 external/flanterm/backends/fb.c
 external/flanterm/flanterm.c

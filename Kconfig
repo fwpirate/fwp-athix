@@ -15,6 +15,12 @@ config BUILD_RELEASE
     help
         Build the kernel with optimizations and minimal logging for production use.
 
+config BUILD_TRACE
+    bool "Trace"
+    help
+        Build the kernel with tracing enabled, providing detailed logging
+        for debugging purposes, enables debug as well.
+
 endchoice
 
 endmenu
