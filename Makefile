@@ -19,6 +19,9 @@ iso: $(SYSOLIVE)
 	@./iso-gen.sh $(SYSOLIVE)
 
 test: iso
+ifeq ($(CONFIG_CLEAR_STDIO_BEFORE_EMU),y)
+	@clear
+endif
 	@qemu-system-x86_64 \
 		-name "Athix" \
 		-cdrom "Athix.iso" \

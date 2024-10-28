@@ -28,6 +28,14 @@ endmenu
 
 menu "Athix Emulation Config"
 
+menu "Extras"
+    config CLEAR_STDIO_BEFORE_EMU
+    bool "Clear stdio Before Emulation"
+    default y
+    help
+        Clear stdio before running QEMU virtual machine.
+endmenu
+
 config QEMU_MEMORY_SIZE
     int "Memory Size (MB)"
     default 512
